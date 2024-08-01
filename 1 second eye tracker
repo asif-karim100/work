@@ -78,10 +78,12 @@
     <script src="https://api.gazerecorder.com/GazeCloudAPI.js"></script>
     <script>
         let latestGazeData = null;
+        let isTracking = false; // Flag to track if data is being received
 
         function PlotGaze(GazeData) {
             // Store latest data
             latestGazeData = GazeData;
+            isTracking = true; // Data is being received
 
             // Update gaze data display
             document.getElementById("GazeData").innerHTML = "GazeX: " + GazeData.GazeX + " GazeY: " + GazeData.GazeY;
@@ -100,7 +102,7 @@
         }
 
         function updateData() {
-            if (latestGazeData) {
+            if (isTracking && latestGazeData) {
                 // Get current timestamp
                 var timestamp = new Date().toLocaleTimeString();
 
@@ -113,6 +115,8 @@
                 document.getElementById("inputGaze").value += (document.getElementById("inputGaze").value ? "\n" : "") + gazeData;
                 document.getElementById("inputHeadPose").value += (document.getElementById("inputHeadPose").value ? "\n" : "") + headPoseData;
                 document.getElementById("inputHeadRot").value += (document.getElementById("inputHeadRot").value ? "\n" : "") + headRotData;
+                
+                isTracking = false; // Reset the flag after saving data
             }
         }
 
