@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaze Tracking</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        #gaze {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            display: none;
+        }
+        .controls {
+            margin: 10px;
+        }
+        .controls button {
+            margin-right: 10px;
+        }
+        .input-container {
+            display: flex;
+            flex: 1;
+            margin: 10px;
+            justify-content: space-between;
+            align-items: stretch;
+        }
+        .input-box {
+            flex: 1;
+            margin: 0 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: vertical;
+            overflow: auto;
+            height: 200px; /* Adjust the height as needed */
+        }
+    </style>
+</head>
+<body>
+    <div id="GazeData"></div>
+    <div id="HeadPoseData"></div>
+    <div id="HeadRotData"></div>
+    <div id="gaze"></div>
+
+    <div class="controls">
+        <button type="button" onclick="GazeCloudAPI.StartEyeTracking();">Start</button>
+        <button type="button" onclick="GazeCloudAPI.StopEyeTracking();">Stop</button>
+    </div>
+
+    <!-- Textareas for Input Boxes -->
+    <div class="input-container">
+        <div>
+            <label for="inputGaze">Gaze Data (X,Y):</label>
+            <textarea id="inputGaze" class="input-box" readonly></textarea>
+        </div>
+        <div>
+            <label for="inputHeadPose">Head Pose (X,Y,Z):</label>
+            <textarea id="inputHeadPose" class="input-box" readonly></textarea>
+        </div>
+        <div>
+            <label for="inputHeadRot">Head Rotation (Yaw,Pitch,Roll):</label>
+            <textarea id="inputHeadRot" class="input-box" readonly></textarea>
+        </div>
+    </div>
+
+    <script src="https://api.gazerecorder.com/GazeCloudAPI.js"></script>
+    <script>
+        function PlotGaze(GazeData) {
+            // Update gaze data display
+            document.getElementById("GazeData").innerHTML = "GazeX: " + GazeData.GazeX + " GazeY: " + GazeData.GazeY;
+            document.getElementById("HeadPoseData").innerHTML = "HeadX: " + GazeData.HeadX + " HeadY: " + GazeData.HeadY + " HeadZ: " + GazeData.HeadZ;
+            document.getElementById("HeadRotData").innerHTML = "Yaw: " + GazeData.HeadYaw + " Pitch: " + GazeData.HeadPitch + " Roll: " + GazeData.HeadRoll;
+
+            // Update gaze indicator
+            var x = GazeData.docX;
+            var y = GazeData.docY;
+            var gaze = document.getElementById("gaze");
+            x -= gaze.clientWidth / 2;
+            y -= gaze.clientHeight / 2;
+            gaze.style.left = x + "px";
+            gaze.style.top = y + "px";
+            gaze.style.display = GazeData.state === 0 ? 'block' : 'none';
+
+            // Get current timestamp
+            var timestamp = new Date().toLocaleTimeString();
+
+            // Update textarea boxes with new data
+            var gazeData = `Timestamp: ${timestamp} | X: ${GazeData.GazeX}, Y: ${GazeData.GazeY}`;
+            var headPoseData = `Timestamp: ${timestamp} | X: ${GazeData.HeadX}, Y: ${GazeData.HeadY}, Z: ${GazeData.HeadZ}`;
+            var headRotData = `Timestamp: ${timestamp} | Yaw: ${GazeData.HeadYaw}, Pitch: ${GazeData.HeadPitch}, Roll: ${GazeData.HeadRoll}`;
+
+            // Append new data to existing values in textarea boxes
+            document.getElementById("inputGaze").value += (document.getElementById("inputGaze").value ? "\n" : "") + gazeData;
+            document.getElementById("inputHeadPose").value += (document.getElementById("inputHeadPose").value ? "\n" : "") + headPoseData;
+            document.getElementById("inputHeadRot").value += (document.getElementById("inputHeadRot").value ? "\n" : "") + headRotData;
+        }
+
+        // Set GazeCloudAPI callbacks
+        GazeCloudAPI.OnResult = PlotGaze;
+
+        GazeCloudAPI.OnCalibrationComplete = function () {
+            console.log('Gaze Calibration Complete');
+        }
+
+        GazeCloudAPI.OnCamDenied = function () {
+            console.log('Camera access denied');
+        }
+
+        GazeCloudAPI.OnError = function (msg) {
+            console.log('Error: ' + msg);
+        }
+
+        GazeCloudAPI.UseClickRecalibration = true;
+    </script>
+</body>
+</html>
