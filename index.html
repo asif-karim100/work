@@ -1,0 +1,187 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaze Tracking with WebGazer.js</title>
+    <style>
+        #gaze {
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            display: none;
+        }
+
+        #gazedata, #gazeinput {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        #gazeinput {
+            margin-top: 10px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gaze"></div>
+    <div id="gazedata"></div>
+    <input type="text" id="gazeinput" readonly>
+    <button type="button" onclick="startTracking();">Start</button>
+    <button type="button" onclick="stopTracking();">Stop</button>
+
+    <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+    <script>
+        let gazeData = ''; 
+        function startTracking() {
+            webgazer.setRegression('ridge')
+                .setGazeListener(function(data, elapsedTime) {
+                    if (data) {
+                        // Update the gaze dot position
+                        var gaze = document.getElementById("gaze");
+                        gaze.style.left = (data.x - gaze.clientWidth / 2) + "px";
+                        gaze.style.top = (data.y - gaze.clientHeight / 2) + "px";
+                        gaze.style.display = 'block';
+
+                        // Update gaze data display
+                        var gazeDataDiv = document.getElementById("gazedata");
+                        gazeDataDiv.innerHTML = `X: ${data.x.toFixed(2)}, Y: ${data.y.toFixed(2)}`;
+
+                        // Store the latest gaze data
+                        gazeData = `X: ${data.x.toFixed(2)}, Y: ${data.y.toFixed(2)}`;
+                    }
+                }).begin();
+
+            // Update input box every second
+            setInterval(function() {
+                document.getElementById("gazeinput").value = gazeData;
+
+            }, 1000);
+        }
+
+        function stopTracking() {
+            webgazer.end();
+            document.getElementById("gaze").style.display = 'none';
+            document.getElementById("gazeinput").value = '';
+        }
+
+        window.onload = function() {
+            webgazer.setGazeListener(function(data, elapsedTime) {
+                if (data) {
+                    console.log('Gaze data:', data);
+
+                    // Update input box value
+                    var gazeInput = document.getElementById("gazeinput");
+                    gazeInput.value = `X: ${data.x.toFixed(2)}, Y: ${data.y.toFixed(2)}`;
+                }
+            }).begin();
+
+            webgazer.pause();
+        };
+    </script>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaze Tracking with WebGazer.js</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #gaze {
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            display: none;
+        }
+        #gazeinput {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            height: 150px; /* Adjusted height for better visibility */
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            overflow-y: auto; /* Allow scrolling if content overflows */
+        }
+        .control-buttons {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-align: left;
+        }
+        .control-buttons button {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gaze"></div>
+    <textarea id="gazeinput" readonly></textarea>
+    <div class="control-buttons">
+        <button type="button" onclick="startTracking();">Start</button>
+        <button type="button" onclick="stopTracking();">Stop</button>
+    </div>
+
+    <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+    <script>
+        let trackingInterval;
+        let gazeDataBuffer = [];
+
+        function startTracking() {
+            webgazer.setRegression('ridge')
+                .setGazeListener(function(data, elapsedTime) {
+                    if (data) {
+                        // Update the gaze dot position
+                        const gaze = document.getElementById("gaze");
+                        gaze.style.left = (data.x - gaze.clientWidth / 2) + "px";
+                        gaze.style.top = (data.y - gaze.clientHeight / 2) + "px";
+                        gaze.style.display = 'block';
+
+                        // Collect gaze data
+                        gazeDataBuffer.push(`X: ${data.x.toFixed(2)}, Y: ${data.y.toFixed(2)}`);
+                    }
+                }).begin();
+
+            // Set an interval to store the data every second
+            trackingInterval = setInterval(() => {
+                const gazeInput = document.getElementById("gazeinput");
+                if (gazeDataBuffer.length > 0) {
+                    gazeInput.value += gazeDataBuffer.join('\n') + '\n';
+                    gazeDataBuffer = []; // Clear the buffer after storing the data
+                    gazeInput.scrollTop = gazeInput.scrollHeight; // Scroll to the bottom
+                }
+            }, 1000);
+        }
+
+        function stopTracking() {
+            webgazer.end();
+            clearInterval(trackingInterval);
+            trackingInterval = null;
+            gazeDataBuffer = [];
+            document.getElementById("gaze").style.display = 'none';
+        }
+
+        window.onload = function() {
+            webgazer.pause();
+        };
+    </script>
+</body>
+</html>
